@@ -1,32 +1,32 @@
-var timerId = 'timer';
-var timer;
-var timerInterval;
+var clock;
 
 window.onload = function() {
-	initTimer(timerId);
+	initClock();
 }
 
-function initTimer(id) {
-	timer = document.getElementById(id);
+function initClock() {
+	console.log('Init timer');
 
-	//Check if the element exist
-	if(timer == null) {
-		console.log('No element : ' + id);
+	var date = new Date();
+	clock = $('.clock').FlipClock(date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds(), {
+		callbacks: {
+			interval: function() {
+				updateTimer();
+			}
+		}
+	});
+}
+
+//Call each seconds, will be use to check if it's time to play music
+function updateTimer() {
+	if(!clock) {
 		return;
 	}
 
-	//Init timer 
-	console.log('Init timer ' + timerId);
-	timer.textContent = '00:00:00';
-	timerInterval = window.setInterval(updateTimer, 1000);
-}
+	console.log('Update timer');
 
-function updateTimer() {
-	console.log('Update : ' + timerId);
-
-	//Get the current time
-	var time = new Date();
-	timer.textContent = checkNumberSize(time.getHours()) + ':' + checkNumberSize(time.getMinutes()) + ':' + checkNumberSize(time.getSeconds());
+	var time = clock.getTime().time;
+	console.log(time);
 }
 
 function checkNumberSize(number) {
