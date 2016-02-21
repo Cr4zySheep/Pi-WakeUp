@@ -1,7 +1,25 @@
 var clock;
+var days = {0: "Sunday", 1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: "Friday", 6: "Saturday"};
+var alarms = new Array();
 
 window.onload = function() {
 	initClock();
+	initAlarmForm();
+}
+
+function initAlarmForm() {
+	$('#alarm-form')[0].addEventListener('submit', setAlarm, false)
+}
+
+function setAlarm(event) {
+	var day = $('select#day')[0].value;
+	var hours = $('select#hours')[0].value;
+	var minutes = $('select#minutes')[0].value;
+
+	var alarm = {'day': day, 'hours': hours, 'minutes': minutes};
+	alarms.push(alarm);
+
+	console.log('Set alarm at : ' + days[day] + ', ' + checkNumberSize(hours) + 'h' + checkNumberSize(minutes));
 }
 
 function initClock() {
@@ -23,10 +41,7 @@ function updateTimer() {
 		return;
 	}
 
-	console.log('Update timer');
-
 	var time = clock.getTime().time;
-	console.log(time);
 }
 
 function checkNumberSize(number) {
