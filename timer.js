@@ -14,10 +14,14 @@ window.onload = function() {
 }
 
 function checkAlarms() {
+	if(nearestAlarm == null) {
+		return;
+	}
+
 	var date = new Date();
 	if(nearestAlarm['day'] == date.getDay() && nearestAlarm['hours'] == date.getHours() && nearestAlarm['minutes'] == date.getMinutes()) {
 		alert("It's time !");
-		tidyAlarms();
+		setNearestAlarm();
 	}
 }
 
@@ -28,7 +32,7 @@ function checkSync() {
 
 	if(delay > 2) {
 		clock.setTime(time);
-		tidyAlarms();
+		setNearestAlarm();
 	}
 }
 
@@ -47,10 +51,10 @@ function setAlarm(event) {
 
 	console.log('Set alarm on : ' + days[day] + ', ' + checkNumberSize(hours) + 'h' + checkNumberSize(minutes));
 
-	tidyAlarms();
+	setNearestAlarm();
 }
 
-function tidyAlarms() {
+function setNearestAlarm() {
 	var today = new Date();
 	var currentDay = today.getDay(), currentHours = today.getHours(), currentMinutes = today.getMinutes();
 	var minutesArray = {};
@@ -68,7 +72,7 @@ function tidyAlarms() {
 			nDay = 6 - currentDay + day;
 		} else if(currentDay == day) {	//Case 3: the same day, but the next week
 			if(currentHours > hours || (currentHours == hours && currentMinutes > minutes)) {
-				nDay = 6 - currentDay + day;
+				nDay = 6;
 			}
 		}
 
@@ -80,6 +84,8 @@ function tidyAlarms() {
 			}
 		} else if(currentHours > hours) { //Case 2: the alarm is the another day
 			nHours = 23 - currentHours + hours;
+		} else if(currentHours == hours && currentDay == day && currentMinutes > minutes) {
+			nHours = 23;
 		}
 
 		//We count whole minutes before the alarm (day and hours no longer matters)
@@ -102,7 +108,7 @@ function tidyAlarms() {
 	}
 
 	//Conclude
-	console.log('Next alarm in ' + nDay +' days, ' + nHours + ' hours and ' + nMinutes + ' minutes.');
+	console.log('Last alarm added in ' + nDay +' days, ' + nHours + ' hours and ' + nMinutes + ' minutes.');
 	displayNextAlarm(minIndex);
 	nearestAlarm = alarms[minIndex];
 }
