@@ -3,6 +3,7 @@ var days = {0: "Sunday", 1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday
 var alarms = new Array();
 var checkInterval;
 var nearestAlarm;
+var audio;
 
 window.onload = function() {
 	initClock();
@@ -11,6 +12,21 @@ window.onload = function() {
 		checkAlarms();
 		checkSync();
 	}, 60 * 1000);
+	audio = $('audio')[0];
+	audio.addEventListener('pause', function() {
+		$('audio').addClass('hide');
+		audio.load();
+		setNearestAlarm();
+	});
+}
+
+function ringAlarm() {
+	if(audio == null) {
+		return;
+	}
+
+	$('audio').removeClass('hide');
+	audio.play();
 }
 
 function checkAlarms() {
@@ -20,7 +36,7 @@ function checkAlarms() {
 
 	var date = new Date();
 	if(nearestAlarm['day'] == date.getDay() && nearestAlarm['hours'] == date.getHours() && nearestAlarm['minutes'] == date.getMinutes()) {
-		alert("It's time !");
+		ringAlarm();
 		setNearestAlarm();
 	}
 }
@@ -37,7 +53,7 @@ function checkSync() {
 }
 
 function initAlarmForm() {
-	$('#alarm-form')[0].addEventListener('submit', setAlarm, false)
+	$('#alarm-form-submit')[0].addEventListener('click', setAlarm, false)
 }
 
 //Add an alarm on the list
@@ -52,6 +68,7 @@ function setAlarm(event) {
 	console.log('Set alarm on : ' + days[day] + ', ' + checkNumberSize(hours) + 'h' + checkNumberSize(minutes));
 
 	setNearestAlarm();
+	return false;
 }
 
 function setNearestAlarm() {

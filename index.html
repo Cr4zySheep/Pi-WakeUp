@@ -5,6 +5,7 @@
 		<meta charset="utf8"/>
 
 		<link rel="stylesheet" type="text/css" href="flipclock.css">
+		<link rel="stylesheet" type="text/css" href="style.css">
 	</head>
 
 	<body>
@@ -109,9 +110,13 @@
 				<option value="58">58</option>
 				<option value="59">59</option>
 			</select>
-			<input type="submit" value="Set alarm"/>
+			<input type="button" id="alarm-form-submit" value="Set alarm"/>
 		</form>
 		<div id="next-alarm"></div>
+		<audio class="hide" loop="loop" controls="controls">
+			Your browser doesn't support the <code>audio</code> element.
+			<source src="TheDarkness-GhostVitaz5.mp3" type="audio/mp3"/>
+		</audio>
 
 		<!-- Scripts -->
 		<script type="text/javascript" src="jquery-1.12.0.min.js"></script>
