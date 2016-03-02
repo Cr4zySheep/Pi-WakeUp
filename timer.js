@@ -72,6 +72,10 @@ function setAlarm(event) {
 }
 
 function setNearestAlarm() {
+	if(alarms.length < 1) {
+		return;
+	}
+
 	var today = new Date();
 	var currentDay = today.getDay(), currentHours = today.getHours(), currentMinutes = today.getMinutes();
 	var minutesArray = {};
