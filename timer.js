@@ -8,16 +8,25 @@ var audio;
 window.onload = function() {
 	initClock();
 	initAlarmForm();
-	checkInterval = window.setInterval(function() {
-		checkAlarms();
-		checkSync();
-	}, 60 * 1000);
+	initChecks();
 	audio = $('audio')[0];
 	audio.addEventListener('pause', function() {
 		$('audio').addClass('hide');
 		audio.load();
 		setNearestAlarm();
 	});
+}
+
+//Set all check on the first second of each minute
+function initChecks() {
+	window.setTimeout(function(){
+		checkAlarms();
+		checkSync();
+		checkInterval = window.setInterval(function() {
+			checkAlarms();
+			checkSync();
+		}, 60 * 1000);
+	}, (60 - new Date().getSeconds() + 1) * 1000);
 }
 
 function ringAlarm() {
