@@ -1,10 +1,11 @@
-var clock;
-var days = {0: "Sunday", 1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: "Friday", 6: "Saturday"};
-var alarms = new Array();
-var checkInterval;
-var nearestAlarm;
-var audio;
+var clock; //The Flip Clock AKA the displayed clock
+var days = {0: "Sunday", 1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: "Friday", 6: "Saturday"}; //Array to convert int in string for day (Could also be a function later)
+var alarms = new Array(); //Contains all alarms of form {"day", "hours", "minutes"}
+var checkInterval; //Store the checking interval
+var nearestAlarm; //Store the next alarm which will ring (null if nothing)
+var audio; //Store html audio element (could be a class later) 
 
+//Init everything on window load
 window.onload = function() {
 	initClock();
 	initAlarmForm();
@@ -29,6 +30,7 @@ function initChecks() {
 	}, (60 - new Date().getSeconds() + 1) * 1000);
 }
 
+//Make ring the alarm
 function ringAlarm() {
 	if(audio == null) {
 		return;
@@ -38,6 +40,8 @@ function ringAlarm() {
 	audio.play();
 }
 
+//Check if this is the time to ring
+//If yes, search the next alarm !
 function checkAlarms() {
 	if(nearestAlarm == null) {
 		return;
@@ -46,10 +50,10 @@ function checkAlarms() {
 	var date = new Date();
 	if(nearestAlarm['day'] == date.getDay() && nearestAlarm['hours'] == date.getHours() && nearestAlarm['minutes'] == date.getMinutes()) {
 		ringAlarm();
-		setNearestAlarm();
 	}
 }
 
+//Check if the display time still corresponds to the real time
 function checkSync() {
 	var date = new Date();
 	var time = date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds()
@@ -61,6 +65,7 @@ function checkSync() {
 	}
 }
 
+//Init alarm form event
 function initAlarmForm() {
 	$('#alarm-form-submit')[0].addEventListener('click', setAlarm, false)
 }
@@ -80,6 +85,7 @@ function setAlarm(event) {
 	return false;
 }
 
+//Set th next alarm to ring
 function setNearestAlarm() {
 	if(alarms.length < 1) {
 		return;
@@ -143,16 +149,12 @@ function setNearestAlarm() {
 	nearestAlarm = alarms[minIndex];
 }
 
-function calc(v1, v2, c1) {
-	if(v1 < v2) {
-		return v2 - v1;
-	} else return c1 - v1 + v2;
-}
-
+//Display next alarm on the page
 function displayNextAlarm(i) {
 	$('#next-alarm')[0].textContent =  'Next alarm : ' + days[alarms[i]['day']] + ', ' + checkNumberSize(alarms[i]['hours']) + 'h' + checkNumberSize(alarms[i]['minutes']);
 }
 
+//Init the displayed clock
 function initClock() {
 	console.log('Init timer');
 
@@ -160,6 +162,7 @@ function initClock() {
 	clock = $('.clock').FlipClock(date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds(), {});
 }
 
+//Add a zero if needed
 function checkNumberSize(number) {
 	if(number < 10) {
 		return '0' + number;
