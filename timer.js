@@ -10,8 +10,9 @@ window.onload = function() {
 	initAlarmForm();
 	initChecks();
 	audio = $('audio')[0];
+	$('audio').hide();
 	audio.addEventListener('pause', function() {
-		$('audio').addClass('hide');
+		$('audio').hide();
 		audio.load();
 		orderAlarms();
 	});
@@ -37,7 +38,7 @@ function ringAlarm() {
 
 	//Don't work
 	$('#alarms-planning').html('');
-	$('audio').removeClass('hide');
+	$('audio').show();
 	audio.play();
 }
 
@@ -92,6 +93,14 @@ function addAlarm(event) {
 	return false;
 }
 
+//Delete an alarm on the list
+function deleteAlarm(index) {
+	if(0 <= index && index < alarms.length) {
+		alarms.splice(parseInt(index), 1);
+		orderAlarms();
+	}
+}
+
 //Calc the minutes gap between now and the alarm
 //@now of form Date()
 //@alarm of form {"day", "hours", "minutes"}
@@ -136,10 +145,6 @@ function calcMinutesGap(now, alarm) {
 
 //Order the alarms list
 function orderAlarms() {
-	if(alarms.length < 1) {
-		return;
-	}
-
 	var now = new Date();
 	var minutesArray = new Array();
 
@@ -169,7 +174,7 @@ function displayAlarms() {
 	var text = '<ol id="alarms-planning">' + function(){
 		var alarmsList = '';
 		for(var i = 0; i < alarms.length; i++) {
-			alarmsList += '<li>' + days[alarms[i]['day']] + ', ' + checkNumberSize(alarms[i]['hours']) + 'h' + checkNumberSize(alarms[i]['minutes']) + '</li>';
+			alarmsList += '<li>' + days[alarms[i]['day']] + ', ' + checkNumberSize(alarms[i]['hours']) + 'h' + checkNumberSize(alarms[i]['minutes']) + '<img class="img-delete" src="redCross.png" onclick="deleteAlarm(' + i + ')"/></li>';
 		}
 		return alarmsList;
 	}() + '</ol>';
