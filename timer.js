@@ -1,6 +1,6 @@
 var clock; //The Flip Clock AKA the displayed clock
 var days = {0: "Sunday", 1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: "Friday", 6: "Saturday"}; //Array to convert int in string for day (Could also be a function later)
-var alarms = new Array(); //Contains all alarms of form {"day", "hours", "minutes"}
+var alarms = new Array(); //Contains all alarms of form {"day", "hours", "minutes", "mute"}
 var checkInterval; //Store the checking interval
 var audio; //Store html audio element (could be a class later) 
 
@@ -51,7 +51,11 @@ function checkAlarms() {
 
 	var date = new Date();
 	if(alarms[0]['day'] == date.getDay() && alarms[0]['hours'] == date.getHours() && alarms[0]['minutes'] == date.getMinutes()) {
-		ringAlarm();
+		if(!alarms[0]['mute']) {
+			ringAlarm();
+		} else {
+			orderAlarms();
+		}
 	}
 }
 
@@ -77,7 +81,7 @@ function addAlarm(event) {
 	var day = $('select#day')[0].value;
 	var hours = $('select#hours')[0].value;
 	var minutes = $('select#minutes')[0].value;
-	var alarm = {'day': day, 'hours': hours, 'minutes': minutes};
+	var alarm = {'day': day, 'hours': hours, 'minutes': minutes, 'mute': false};
 
 	//Avoid two identicals alarms
 	if(alarms.find(function(element, index, array) {
@@ -101,9 +105,25 @@ function deleteAlarm(index) {
 	}
 }
 
+//Mute this alarm
+function muteAlarm(index) {
+	if(0 <= index && index < alarms.length) {
+		alarms[index]['mute'] = true;
+		orderAlarms();
+	}
+}
+
+//Unmute this alarm
+function unmuteAlarm(index) {
+	if(0 <= index && index < alarms.length) {
+		alarms[index]['mute'] = false;
+		orderAlarms();
+	}
+}
+
 //Calc the minutes gap between now and the alarm
 //@now of form Date()
-//@alarm of form {"day", "hours", "minutes"}
+//@alarm of form {"day", "hours", "minutes", "mute"}
 function calcMinutesGap(now, alarm) {
 	var day = parseInt(alarm['day']), hours = parseInt(alarm['hours']), minutes = parseInt(alarm['minutes']);
 	var currentDay = now.getDay(), currentHours = now.getHours(), currentMinutes = now.getMinutes();
@@ -174,7 +194,15 @@ function displayAlarms() {
 	var text = '<ol id="alarms-planning">' + function(){
 		var alarmsList = '';
 		for(var i = 0; i < alarms.length; i++) {
-			alarmsList += '<li>' + days[alarms[i]['day']] + ', ' + checkNumberSize(alarms[i]['hours']) + 'h' + checkNumberSize(alarms[i]['minutes']) + '<img class="img-delete" src="redCross.png" onclick="deleteAlarm(' + i + ')"/></li>';
+			alarmsList += '<li>' + days[alarms[i]['day']] + ', ' + checkNumberSize(alarms[i]['hours']) + 'h' + checkNumberSize(alarms[i]['minutes']);
+
+			if(alarms[i]['mute']) {
+				alarmsList += ' <img class="img-mute" alt="unmute" title="Unmute this alarm" src="blackBellSlash.png" onclick="unmuteAlarm(' + i + ')"/>';
+			} else {
+				alarmsList += ' <img class="img-unmute" alt="mute" title="Mute this alarm" src="blackBell.png" onclick="muteAlarm(' + i + ')"/>';
+			}
+
+			alarmsList += ' <img class="img-delete" alt="delete" title="Delete this alarm" src="redCross.png" onclick="deleteAlarm(' + i + ')"/></li>';
 		}
 		return alarmsList;
 	}() + '</ol>';
