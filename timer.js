@@ -68,21 +68,27 @@ function checkSync() {
 
 //Init alarm form event
 function initAlarmForm() {
-	$('#alarm-form-submit')[0].addEventListener('click', setAlarm, false)
+	$('#alarm-form-submit')[0].addEventListener('click', addAlarm, false)
 }
 
 //Add an alarm on the list
-function setAlarm(event) {
+function addAlarm(event) {
 	var day = $('select#day')[0].value;
 	var hours = $('select#hours')[0].value;
 	var minutes = $('select#minutes')[0].value;
-
 	var alarm = {'day': day, 'hours': hours, 'minutes': minutes};
-	alarms.push(alarm);
 
-	console.log('Set an alarm on : ' + days[day] + ', ' + checkNumberSize(hours) + 'h' + checkNumberSize(minutes));
+	//Avoid two identicals alarms
+	if(alarms.find(function(element, index, array) {
+		return (element['day'] == day && element['hours'] == hours && element['minutes'] == minutes);
+	}) == undefined) {
+		alarms.push(alarm);
+		console.log('Set an alarm on : ' + days[day] + ', ' + checkNumberSize(hours) + 'h' + checkNumberSize(minutes));
+		orderAlarms();
+	} else {
+		console.log('This alarm already exists !');
+	}
 
-	orderAlarms();
 	return false;
 }
 
