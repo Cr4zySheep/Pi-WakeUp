@@ -1,5 +1,6 @@
 var clock; //The Flip Clock AKA the displayed clock
 var days = {0: "Sunday", 1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: "Friday", 6: "Saturday"}; //Array to convert int in string for day (Could also be a function later)
+var months = {0: "January", 1: "February", 2: "March", 3: "April", 4: "May", 5: "June", 6: "July", 7: "August", 8: "September", 9: "October", 10: "November", 11: "December"}; //Array to convert int in string for month (Could also be a function later)
 var alarms = new Array(); //Contains all alarms of form {"day", "hours", "minutes", "mute", "repeat"}
 var checkInterval; //Store the checking interval
 var audio; //Store html audio element (could be a class later) 
@@ -195,12 +196,29 @@ function orderAlarms() {
 	displayAlarms();
 }
 
+//Return the next occuring date of the alarm
+function getNextOccuringDate(date, alarm) {
+    var resultDate = new Date(date.getTime());
+    var dayToAdd = (7 + alarm['day'] - date.getDay()) % 7;
+
+	if(dayToAdd == 0 && (date.getHours() > alarm['hours'] || (date.getHours() == alarm['hours'] && date.getMinutes() >= alarm['minutes'] ) ) ) {
+		dayToAdd += 7;
+	}
+
+    resultDate.setDate(date.getDate() + dayToAdd);
+
+    return resultDate;
+}
+
 //Display alarms from the nearest to the farest
 function displayAlarms() {
 	var text = '<ol id="alarms-planning">' + function(){
-		var alarmsList = '';
+		var alarmsList = '', now = new Date();
+
 		for(var i = 0; i < alarms.length; i++) {
-			alarmsList += '<li>' + days[alarms[i]['day']] + ', ' + checkNumberSize(alarms[i]['hours']) + 'h' + checkNumberSize(alarms[i]['minutes']);
+			var nextOccuringDate = getNextOccuringDate(now, alarms[i]);
+
+			alarmsList += '<li>' + days[nextOccuringDate.getDay()] + ', ' + nextOccuringDate.getDate() + ' ' + months[nextOccuringDate.getMonth()] + ' at ' + checkNumberSize(alarms[i]['hours']) + ':' + checkNumberSize(alarms[i]['minutes']);
 
 			if(alarms[i]['repeat']) {
 				alarmsList += ' <img class="img-repeat" title="This alarm will repeat itself till the end of the world" src="blackArrowsCircle.png""/>';
@@ -215,11 +233,11 @@ function displayAlarms() {
 
 			alarmsList += ' <img class="img-delete" alt="delete" title="Delete this alarm" src="redCross.png" onclick="deleteAlarm(' + i + ')"/></li>';
 		}
+
 		return alarmsList;
 	}() + '</ol>';
 
 	$('#alarms-planning').html(text);
-
 }
 
 //Init the displayed clock
