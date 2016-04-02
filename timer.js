@@ -3,7 +3,30 @@ var days = {0: "Sunday", 1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday
 var months = {0: "January", 1: "February", 2: "March", 3: "April", 4: "May", 5: "June", 6: "July", 7: "August", 8: "September", 9: "October", 10: "November", 11: "December"}; //Array to convert int in string for month (Could also be a function later)
 var alarms = new Array(); //Contains all alarms of form {"day", "hours", "minutes", "mute", "repeat"}
 var checkInterval; //Store the checking interval
-var audio; //Store html audio element (could be a class later) 
+var audio; //Store html audio element (could be a class later)
+
+if (!Array.prototype.find) {
+  Array.prototype.find = function(predicate) {
+    if (this == null) {
+      throw new TypeError('Array.prototype.find was called on null or undefined');
+    }
+    if (typeof predicate !== 'function') {
+      throw new TypeError('predicate must be a function');
+    }
+    var list = Object(this);
+    var length = list.length >>> 0;
+    var thisArg = arguments[1];
+    var value;
+
+    for (var i = 0; i < length; i++) {
+      value = list[i];
+      if (predicate.call(thisArg, value, i, list)) {
+        return value;
+      }
+    }
+    return undefined;
+  };
+}
 
 //Init everything on window load
 window.onload = function() {
