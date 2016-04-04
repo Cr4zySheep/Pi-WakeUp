@@ -102,7 +102,13 @@ function checkSync() {
 
 //Init alarm form event
 function initAlarmForm() {
-	$('#alarm-form-submit')[0].addEventListener('click', addAlarm, false)
+	$('#alarm-form-submit')[0].addEventListener('click', addAlarm, false);
+
+	//Set form at now by default
+	var now = new Date();
+	$('#day')[0][now.getDay() - 1].selected = 'selected';
+	$('#hours')[0][now.getHours()].selected = 'selected';
+	$('#minutes')[0][now.getMinutes()].selected = 'selected';
 }
 
 //Add an alarm on the list
