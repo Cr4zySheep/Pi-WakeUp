@@ -106,7 +106,7 @@ function initAlarmForm() {
 
 	//Set form at now by default
 	var now = new Date();
-	$('#day')[0][now.getDay() - 1].selected = 'selected';
+	$('#day')[0][now.getDay()].selected = 'selected';
 	$('#hours')[0][now.getHours()].selected = 'selected';
 	$('#minutes')[0][now.getMinutes()].selected = 'selected';
 }
@@ -167,7 +167,7 @@ function calcMinutesGap(now, alarm) {
 
 	//We count whole day before the alarm
 	if(currentDay < day) { 			  //Case 1: the alarm is the same week
-		nDay = day - currentDay - 1; 
+		nDay = day - currentDay - 1;
 	} else if(currentDay > day) {	 //Case 2: the alarm is the next week
 		nDay = 6 - currentDay + day;
 	} else if(currentDay == day) {	//Case 3: the same day, but the next week
@@ -190,7 +190,7 @@ function calcMinutesGap(now, alarm) {
 
 	//We count whole minutes before the alarm (day and hours no longer matters)
 	if(currentMinutes < minutes) { 		  //Case 1: the alarm is the same hour
-		nMinutes = minutes - currentMinutes - 1; 
+		nMinutes = minutes - currentMinutes - 1;
 	} else if(currentMinutes >= minutes) { //Case 2: the alarm is the next hour
 		nMinutes = 59 - currentMinutes + minutes;
 	}
@@ -250,17 +250,17 @@ function displayAlarms() {
 			alarmsList += '<li>' + days[nextOccuringDate.getDay()] + ', ' + nextOccuringDate.getDate() + ' ' + months[nextOccuringDate.getMonth()] + ' at ' + checkNumberSize(alarms[i]['hours']) + ':' + checkNumberSize(alarms[i]['minutes']);
 
 			if(alarms[i]['repeat']) {
-				alarmsList += ' <img class="img-repeat" title="This alarm will repeat itself till the end of the world" src="blackArrowsCircle.png""/>';
+				alarmsList += ' <img class="img-repeat" title="This alarm will repeat itself till the end of the world" src="img/blackArrowsCircle.png"/>';
 			}
 
 			if(alarms[i]['mute']) {
-				alarmsList += ' <img class="img-mute" alt="unmute" title="Unmute this alarm" src="blackBellSlash.png" onclick="unmuteAlarm(' + i + ')"/>';
+				alarmsList += ' <img class="img-mute" alt="unmute" title="Unmute this alarm" src="img/blackBellSlash.png" onclick="unmuteAlarm(' + i + ')"/>';
 			} else {
-				alarmsList += ' <img class="img-unmute" alt="mute" title="Mute this alarm" src="blackBell.png" onclick="muteAlarm(' + i + ')"/>';
+				alarmsList += ' <img class="img-unmute" alt="mute" title="Mute this alarm" src="img/blackBell.png" onclick="muteAlarm(' + i + ')"/>';
 			}
 
 
-			alarmsList += ' <img class="img-delete" alt="delete" title="Delete this alarm" src="redCross.png" onclick="deleteAlarm(' + i + ')"/></li>';
+			alarmsList += ' <img class="img-delete" alt="delete" title="Delete this alarm" src="img/redCross.png" onclick="deleteAlarm(' + i + ')"/></li>';
 		}
 
 		return alarmsList;

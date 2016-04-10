@@ -4,8 +4,8 @@
 		<title>Pi-WakeUp</title>
 		<meta charset="utf8"/>
 
-		<link rel="stylesheet" type="text/css" href="flipclock.css">
-		<link rel="stylesheet" type="text/css" href="style.css">
+		<link rel="stylesheet" type="text/css" href="css/flipclock.css">
+		<link rel="stylesheet" type="text/css" href="css/style.css">
 	</head>
 
 	<body>
@@ -14,13 +14,13 @@
 
 		<form id="alarm-form">
 			<select id="day">
+				<option value="0">Sunday</option>
 				<option value="1">Monday</option>
 				<option value="2">Tuesday</option>
 				<option value="3">Wednesday</option>
 				<option value="4">Thursday</option>
 				<option value="5">Friday</option>
 				<option value="6">Saturday</option>
-				<option value="0">Sunday</option>
 			</select>
 			<select id="hours">
 				<option value="0">00</option>
@@ -116,7 +116,7 @@
 		<ol id="alarms-planning"></ol>
 		<audio loop="loop" controls="controls">
 			Your browser doesn't support the <code>audio</code> element.
-			<source src="TheDarkness-GhostVitaz5.mp3" type="audio/mp3"/>
+			<source src="musics/TheDarkness-GhostVitaz5.mp3" type="audio/mp3"/>
 		</audio>
 
 		<footer>
@@ -125,9 +125,9 @@
 		</footer>
 
 		<!-- Scripts -->
-		<script type="text/javascript" src="jquery-1.12.0.min.js"></script>
-		<script type="text/javascript" src="flipclock.min.js"></script>
-		<script type="text/javascript" src="timer.js"></script>
+		<script type="text/javascript" src="js/jquery-1.12.0.min.js"></script>
+		<script type="text/javascript" src="js/flipclock.min.js"></script>
+		<script type="text/javascript" src="js/timer.js"></script>
 	</body>
 
 </html>
