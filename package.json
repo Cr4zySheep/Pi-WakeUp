@@ -2,6 +2,7 @@
   "name": "Pi-WakeUp",
   "version": "0.1.0",
   "dependencies": {
-    "express": "~4.13.4"
+    "express": "~4.13.4",
+    "ejs": "~2.4.1"
   }
 }

@@ -5,3 +5,4 @@ To start using Pi-WakeUp, use node app.js
 
 Dependencies :
 express (~4.13.4)
+ejs (~2.4.1)
