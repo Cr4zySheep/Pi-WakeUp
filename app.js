@@ -11,6 +11,10 @@ app.use(express.static('public'))
 
 .set('view engine', 'ejs')
 
+.get('/socket.io/socket.io.js', function(req, res) {
+  res.sendFile(__dirname + '/node_modules/socket.io-client/socket.io.js')
+})
+
 .get('/', function(req, res) {
   res.render('index');
 })
