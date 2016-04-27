@@ -85,7 +85,7 @@ io.on('connection', function(socket) {
 
   socket.on('setAlarmMute', function(data) {
     //Are data correct ?
-    if(!data) {
+    if(!data || !data.alarm) {
       console.log('Error : no data send');
       return;
     }
@@ -96,11 +96,9 @@ io.on('connection', function(socket) {
       return;
     }
 
-    var mute = (data.mute) ? true : false;
-
-    db.alarms.update({day: alarm.day, hours: alarm.hours, minutes: alarm.minutes}, {$set: {'mute': mute}});
-    console.log('Alarm at ' + alarms.getStringDay(alarm.day) + ' ' + alarms.getStringTime(alarm.hours, alarm.minutes) + ' set mute to ' + mute);
-    socket.broadcast.emit('alarmMuteSet', {alarm, mute});
+    db.alarms.update({day: alarm.day, hours: alarm.hours, minutes: alarm.minutes}, {$set: {'mute': alarm.mute}});
+    console.log('Alarm at ' + alarms.getStringDay(alarm.day) + ' ' + alarms.getStringTime(alarm.hours, alarm.minutes) + ' set mute to ' + ((alarm.mute) ? true : false));
+    socket.broadcast.emit('alarmMuteSet', {alarm});
   });
 
 });
