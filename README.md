@@ -1,11 +1,4 @@
-Project Pi-WakeUp
-
-Use Node.js
-To start using Pi-WakeUp, use node app.js
-
-Dependencies :
-express (~4.13.4)
-ejs (~2.4.1)
+## Project Pi-WakeUp
 
 # Setting
 'config.json' sample :
@@ -19,4 +12,14 @@ ejs (~2.4.1)
     "ip": "SERVER-IP"
   }
 }
+'''
+
+# To start
+Need node.js and then :
+
+'''
+git clone https://github.com/Cr4zySheep/Pi-WakeUp.git
+cd Pi-WakeUp
+node install
+node app.js
 '''
