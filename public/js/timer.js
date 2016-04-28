@@ -129,7 +129,7 @@ function setAlarmMute(index, mute) {
   if(alarmsHandler.checkIndex(index)) {
     alarmsHandler.setMute(index, (mute) ? true : false);
     displayAlarms();
-    socket.emit('setAlarmMute', {'alarm': alarmsHandler.getAlarm(index)});
+    socket.emit('setAlarmMute', alarmsHandler.getAlarm(index));
   }
 }
 
