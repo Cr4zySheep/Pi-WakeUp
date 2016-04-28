@@ -1,8 +1,9 @@
+var config = require('./config.json');
 var express = require('express');
 var mongojs = require('mongojs');
 var alarms = require('./public/js/alarms');
 
-var db = mongojs('Pi-WakeUp', ['alarms']);
+var db = mongojs(config.db.name, ['alarms']);
 var app = express();
 var server = require('http').Server(app);
 
@@ -16,7 +17,7 @@ app.use(express.static('public'))
 })
 
 .get('/', function(req, res) {
-  res.render('index');
+  res.render('index', {serverIP: config.server.ip, port: config.server.port});
 })
 
 .use(function(req, res) {
@@ -104,6 +105,6 @@ io.on('connection', function(socket) {
 });
 
 //Start server !
-server.listen(8080, function() {
-  console.log('Pi-WakeUp listening on port 8080');
+server.listen(config.server.port, function() {
+  console.log('Pi-WakeUp listening on port : ' + config.server.port);
 });

@@ -1,7 +1,7 @@
 var clock; //The Flip Clock AKA the displayed clock
 var checkInterval; //Store the checking interval
 var audio; //Store html audio element (could be a class later)
-var socket = io.connect('http://192.168.1.52:8080/');
+var socket = io.connect('http://' + serverAddress);
 var alarmsHandler = new AlarmsHandler(this.alarms);
 
 socket.on('allAlarms', function(alarms) {
