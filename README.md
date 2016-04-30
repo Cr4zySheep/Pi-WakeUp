@@ -15,7 +15,7 @@
 ```
 
 ## To start
-Need node.js and then :
+Need node.js and mongoDB and then :
 
 ```
 git clone https://github.com/Cr4zySheep/Pi-WakeUp.git

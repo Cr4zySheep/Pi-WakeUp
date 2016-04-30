@@ -1,30 +1,61 @@
 var clock; //The Flip Clock AKA the displayed clock
 var checkInterval; //Store the checking interval
 var audio; //Store html audio element (could be a class later)
-var socket = io.connect('http://' + serverAddress);
+var socket;
 var alarmsHandler = new AlarmsHandler(this.alarms);
-
-socket.on('allAlarms', function(alarms) {
-  alarms.forEach(function(current, index, array) {
-    alarmsHandler.addAlarm(current);
-  });
-  alarmsHandler.orderAlarms();
-  displayAlarms();
-});
 
 //Init everything on window load
 window.onload = function() {
 	initClock();
 	initAlarmForm();
 	initChecks();
-	audio = $('audio')[0];
-	$('audio').hide();
-	audio.addEventListener('pause', function() {
-		$('audio').hide();
-		audio.load();
-		alarmsHandler.orderAlarms();
+  initSocketIO();
+	initAudio();
+}
+
+function initAudio() {
+  audio = $('audio')[0];
+  $('audio').hide();
+  audio.addEventListener('pause', function() {
+    $('audio').hide();
+    audio.load();
+    alarmsHandler.orderAlarms();
     displayAlarms();
-	});
+  });
+}
+
+function initSocketIO() {
+  socket = io.connect('http://' + serverAddress);
+
+  socket.on('allAlarms', function(alarms) {
+    alarms.forEach(function(current, index, array) {
+      alarmsHandler.addAlarm(current);
+    });
+    alarmsHandler.orderAlarms();
+    displayAlarms();
+  });
+
+  socket.on('addAlarmError', function(alarm) {
+    alarmsHandler.removeAlarm(alarmsHandler.getIndexFromAlarm(alarm));
+    console.log('Error : alarm already exist');
+  });
+
+  socket.on('alarmAdded', function(alarm) {
+    alarmsHandler.addAlarm(alarm);
+    alarmsHandler.orderAlarms();
+    displayAlarms();
+  });
+
+  socket.on('alarmMuteSet', function(data) {
+    if(!data || !data.alarm) return;
+    alarmsHandler.setMute(alarmsHandler.getIndexFromAlarm(data.alarm), (data.alarm.mute) ? true : false);
+    displayAlarms();
+  });
+
+  socket.on('alarmDeleted', function(alarm) {
+    alarmsHandler.removeAlarm(alarmsHandler.getIndexFromAlarm(alarm));
+    displayAlarms();
+  });
 }
 
 //Set all check on the first second of each minute
@@ -101,17 +132,6 @@ function addAlarm(event) {
   socket.emit('addAlarm', alarm);
 }
 
-socket.on('addAlarmError', function(alarm) {
-  alarmsHandler.removeAlarm(alarmsHandler.getIndexFromAlarm(alarm));
-  console.log('Error : alarm already exist');
-});
-
-socket.on('alarmAdded', function(alarm) {
-  alarmsHandler.addAlarm(alarm);
-  alarmsHandler.orderAlarms();
-  displayAlarms();
-});
-
 //Delete an alarm (local list and db)
 function deleteAlarm(index) {
   if(!alarmsHandler.checkIndex(index)) return;
@@ -120,11 +140,6 @@ function deleteAlarm(index) {
   displayAlarms();
 }
 
-socket.on('alarmDeleted', function(alarm) {
-  alarmsHandler.removeAlarm(alarmsHandler.getIndexFromAlarm(alarm));
-  displayAlarms();
-});
-
 function setAlarmMute(index, mute) {
   if(alarmsHandler.checkIndex(index)) {
     alarmsHandler.setMute(index, (mute) ? true : false);
@@ -132,12 +147,6 @@ function setAlarmMute(index, mute) {
     socket.emit('setAlarmMute', alarmsHandler.getAlarm(index));
   }
 }
-
-socket.on('alarmMuteSet', function(data) {
-  if(!data || !data.alarm) return;
-  alarmsHandler.setMute(alarmsHandler.getIndexFromAlarm(data.alarm), (data.alarm.mute) ? true : false);
-  displayAlarms();
-});
 
 //Display alarms from the nearest to the farest
 function displayAlarms() {
