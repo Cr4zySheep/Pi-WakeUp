@@ -24,7 +24,7 @@
 
     var resultDate = new Date(date.getTime());
     var dayToAdd = (7 + alarm.day - date.getDay()) % 7;
-    
+
   	if(dayToAdd == 0 && (date.getHours() > alarm.hours || (date.getHours() == alarm.hours && date.getMinutes() >= alarm.minutes ) ) ) {
   		dayToAdd += 7;
   	}
@@ -37,6 +37,8 @@
   //@now of form Date()
   //@alarm of form {"day", "hours", "minutes", "mute", "repeat"}
   exports.calcMinutesGap = function(now, alarm) {
+    if(!alarm) return;
+    
   	var day = parseInt(alarm['day']), hours = parseInt(alarm['hours']), minutes = parseInt(alarm['minutes']);
   	var currentDay = now.getDay(), currentHours = now.getHours(), currentMinutes = now.getMinutes();
   	var nDay = 0, nHours = 0, nMinutes = 0;

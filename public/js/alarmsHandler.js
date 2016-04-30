@@ -43,7 +43,7 @@ function AlarmsHandler(AlarmObj) {
     });
 
     var orderedAlarms = new Array();
-    for(var i in minutesArray) {
+    for(var i = 0; i < minutesArray.length; ++i) {
       orderedAlarms.push(alarms[minutesArray[i].originalIndex]);
     }
 
@@ -79,7 +79,7 @@ function AlarmsHandler(AlarmObj) {
     return '<ol id="alarms-planning">' + function(){
   		var alarmsList = '', now = new Date();
 
-  		for(var i in alarms) {
+  		for(var i = 0; i < alarms.length; ++i) {
         var alarm = alarms[i],
             nextOccuringDate = AlarmObj.getNextOccuringDate(now, alarm);
 
@@ -114,5 +114,5 @@ function AlarmsHandler(AlarmObj) {
       callback(alarm);
     }
   };
-  
+
 };
