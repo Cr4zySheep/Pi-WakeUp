@@ -102,6 +102,14 @@ io.on('connection', function(socket) {
     socket.broadcast.emit('alarmMuteSet', alarm);
   });
 
+  socket.on('stopAlarm', function(data) {
+    socket.broadcast.emit('alarmStopped', {});
+  });
+
+  socket.on('startAlarm', function(data) {
+    socket.broadcast.emit('alarmStarted', {});
+  });
+
 });
 
 //Start server !

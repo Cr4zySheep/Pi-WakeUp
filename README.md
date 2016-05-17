@@ -23,3 +23,6 @@ cd Pi-WakeUp
 node install
 node app.js
 ```
+
+## Advice
+When using multiple device, be aware that they can have different time and that's why alarms could ring several times.

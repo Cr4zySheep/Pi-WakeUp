@@ -17,11 +17,17 @@ function initAudio() {
   audio = $('audio')[0];
   $('audio').hide();
   audio.addEventListener('pause', function() {
-    $('audio').hide();
-    audio.load();
-    alarmsHandler.orderAlarms();
-    displayAlarms();
+    stopAlarm();
+		socket.emit('stopAlarm', {});
   });
+}
+
+function stopAlarm() {
+	console.log('Current ringing alarm stopped');
+	$('audio').hide();
+	audio.load();
+	alarmsHandler.orderAlarms();
+	displayAlarms();
 }
 
 function initSocketIO() {
@@ -44,7 +50,7 @@ function initSocketIO() {
     alarmsHandler.addAlarm(alarm);
     alarmsHandler.orderAlarms();
     displayAlarms();
-  });
+	});
 
   socket.on('alarmMuteSet', function(data) {
     if(!data || !data.alarm) return;
@@ -56,6 +62,14 @@ function initSocketIO() {
     alarmsHandler.removeAlarm(alarmsHandler.getIndexFromAlarm(alarm));
     displayAlarms();
   });
+
+	socket.on('alarmStopped', function(data) {
+		stopAlarm();
+	});
+
+	socket.on('alarmStarted', function(data) {
+		ringAlarm();
+	});
 }
 
 //Set all check on the first second of each minute
@@ -87,6 +101,7 @@ function ringAlarm() {
 function checkAlarms() {
   alarmsHandler.timeToRing(function(alarm) {
     if(!alarm['mute']) {
+			socket.emit('startAlarm', {});
       ringAlarm();
     } else {
       alarmsHandler.orderAlarms();
