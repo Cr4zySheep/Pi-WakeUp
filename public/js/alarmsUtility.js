@@ -38,7 +38,7 @@
   //@alarm of form {"day", "hours", "minutes", "mute", "repeat"}
   exports.calcMinutesGap = function(now, alarm) {
     if(!alarm) return;
-    
+
   	var day = parseInt(alarm['day']), hours = parseInt(alarm['hours']), minutes = parseInt(alarm['minutes']);
   	var currentDay = now.getDay(), currentHours = now.getHours(), currentMinutes = now.getMinutes();
   	var nDay = 0, nHours = 0, nMinutes = 0;
@@ -107,21 +107,4 @@
     return makeNiceNumber(hours) + ':' + makeNiceNumber(minutes);
   }
 
-  //If alarm is in db, execute yes with doc as parameter, else execute no
-  exports.isInDB = function(alarm, collection, yes, no) {
-    collection.findOne({day: alarm.day, hours: alarm.hours, minutes: alarm.minutes}, function(err, doc) {
-      if(err) {
-        console.log(err);
-        return;
-      } else if(doc) {
-        if(typeof(yes) == 'function') yes(doc)
-        return;
-      }
-      if(typeof(no) == 'function') no();
-    });
-  };
-
-  exports.remove = function(alarm, collection) {
-    collection.remove({day: alarm.day, hours: alarm.hours, minutes: alarm.minutes});
-  };
-})(typeof exports === 'undefined'? this.alarms={}: exports);
+})(typeof exports === 'undefined'? this.alarmUtility={}: exports);

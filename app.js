@@ -1,7 +1,8 @@
 var config = require('./config.json');
 var express = require('express');
 var mongojs = require('mongojs');
-var alarms = require('./public/js/alarms');
+var alarmsUtility = require('./public/js/alarmsUtility');
+var alarmsServer = require('./alarmsServer');
 
 var db = mongojs(config.db.name, ['alarms']);
 var app = express();
@@ -29,87 +30,7 @@ app.use(express.static('public'))
 var io = require('socket.io')(server);
 io.on('connection', function(socket) {
   console.log('A new client is connected !');
-
-  //Send all alarms
-  db.alarms.find({}, function(err, docs) {
-    if(err) {
-      console.log(err);
-      return;
-    }
-
-    socket.emit('allAlarms', docs);
-  });
-
-  socket.on('addAlarm', function(data) {
-    //First, check if data are correct
-    if(!data) {
-      console.log('Error : no data send');
-      return;
-    }
-
-    var alarm = alarms.create(data.day, data.hours, data.minutes, data.mute, data.repeat);
-    if(!alarm) {
-      console.log('Cannot add alarm : data incorrect');
-      return;
-    }
-
-    //If not already in db, add it !
-    alarms.isInDB(alarm, db.alarms,
-      function(doc) {
-        console.log('Cannot add alarm : already exist');
-        socket.emit('addAlarmError', alarm);
-      },
-      function() {
-        db.alarms.insert(alarm);
-        console.log('Alarm at ' + alarms.getStringDay(alarm.day) + ' ' + alarms.getStringTime(alarm.hours, alarm.minutes) + ' added');
-        socket.broadcast.emit('alarmAdded', alarm);
-      });
-  });
-
-  socket.on('deleteAlarm', function(data) {
-    //Are data correct ?
-    if(!data) {
-      console.log('Error : no data send');
-      return;
-    }
-
-    var alarm = alarms.create(data.day, data.hours, data.minutes, data.mute, data.repeat);
-    if(!alarm) {
-      console.log('Cannot add alarm : data incorrect');
-      return;
-    }
-
-    alarms.remove(alarm, db.alarms);
-    socket.broadcast.emit('alarmDeleted', alarm);
-    console.log('Alarm at ' + alarms.getStringDay(alarm.day) + ' ' + alarms.getStringTime(alarm.hours, alarm.minutes) + ' deleted');
-  });
-
-  socket.on('setAlarmMute', function(data) {
-    //Are data correct ?
-    if(!data) {
-      console.log('Error : no data send');
-      return;
-    }
-
-    var alarm = alarms.create(data.day, data.hours, data.minutes, data.mute, data.repeat);
-    if(!alarm) {
-      console.log('Cannot add alarm : data incorrect');
-      return;
-    }
-
-    db.alarms.update({day: alarm.day, hours: alarm.hours, minutes: alarm.minutes}, {$set: {'mute': alarm.mute}});
-    console.log('Alarm at ' + alarms.getStringDay(alarm.day) + ' ' + alarms.getStringTime(alarm.hours, alarm.minutes) + ' set mute to ' + ((alarm.mute) ? true : false));
-    socket.broadcast.emit('alarmMuteSet', alarm);
-  });
-
-  socket.on('stopAlarm', function(data) {
-    socket.broadcast.emit('alarmStopped', {});
-  });
-
-  socket.on('startAlarm', function(data) {
-    socket.broadcast.emit('alarmStarted', {});
-  });
-
+  alarmsServer.on(socket, db.alarms, alarmsUtility);
 });
 
 //Start server !

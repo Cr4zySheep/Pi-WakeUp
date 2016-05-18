@@ -2,7 +2,7 @@ var clock; //The Flip Clock AKA the displayed clock
 var checkInterval; //Store the checking interval
 var audio; //Store html audio element (could be a class later)
 var socket;
-var alarmsHandler = new AlarmsHandler(this.alarms);
+var alarmsHandler = new AlarmsHandler(this.alarmUtility);
 
 //Init everything on window load
 window.onload = function() {
@@ -138,7 +138,7 @@ function initAlarmForm() {
 
 //Add an alarm on the list
 function addAlarm(event) {
-  var alarm = alarms.create($('#day')[0].value, $('#hours')[0].value, $('#minutes')[0].value, false, $('#repeat')[0].checked);
+  var alarm = alarmUtility.create($('#day')[0].value, $('#hours')[0].value, $('#minutes')[0].value, false, $('#repeat')[0].checked);
   alarmsHandler.addAlarm(alarm);
   alarmsHandler.orderAlarms();
   displayAlarms();

@@ -1,9 +1,9 @@
-function AlarmsHandler(AlarmObj) {
+function AlarmsHandler(alarmUtility) {
   var alarms = new Array(); //ALarms list
-  this.AlarmObj = AlarmObj; //Alarm constructor
+  this.alarmUtility = alarmUtility; //Alarm utility
 
   this.addAlarm = function(alarm) {
-    alarm = AlarmObj.createFromObject(alarm);
+    alarm = alarmUtility.createFromObject(alarm);
     if(!alarm) {
       console.log('Bad alarm info');
       return;
@@ -16,7 +16,7 @@ function AlarmsHandler(AlarmObj) {
               current['minutes'] == alarm.minutes);
   	}) == undefined) {
   		alarms.push(alarm);
-  		console.log('Add an alarm at ' + AlarmObj.getStringDay(alarm.day) + ' on ' + AlarmObj.getStringTime(alarm.hours, alarm.minutes));
+  		console.log('Add an alarm at ' + alarmUtility.getStringDay(alarm.day) + ' on ' + alarmUtility.getStringTime(alarm.hours, alarm.minutes));
   	} else {
   		console.log('Sorry, but this alarm already exists !');
   	}
@@ -35,7 +35,7 @@ function AlarmsHandler(AlarmObj) {
 
     //Calc in how many minutes each alarms will ring
   	for(var i = 0; i < alarms.length; i++) {
-      minutesArray.push({'gap': AlarmObj.calcMinutesGap(now, alarms[i]), 'originalIndex': i});
+      minutesArray.push({'gap': alarmUtility.calcMinutesGap(now, alarms[i]), 'originalIndex': i});
     }
 
     minutesArray.sort(function(a, b) {
@@ -81,9 +81,9 @@ function AlarmsHandler(AlarmObj) {
 
   		for(var i = 0; i < alarms.length; ++i) {
         var alarm = alarms[i],
-            nextOccuringDate = AlarmObj.getNextOccuringDate(now, alarm);
+            nextOccuringDate = alarmUtility.getNextOccuringDate(now, alarm);
 
-  			alarmsList += '<li>' + AlarmObj.getStringDay(nextOccuringDate.getDay()) + ', ' + nextOccuringDate.getDate() + ' ' + AlarmObj.getStringMonth(nextOccuringDate.getMonth()) + ' at ' + AlarmObj.getStringTime(alarm.hours, alarm.minutes);
+  			alarmsList += '<li>' + alarmUtility.getStringDay(nextOccuringDate.getDay()) + ', ' + nextOccuringDate.getDate() + ' ' + alarmUtility.getStringMonth(nextOccuringDate.getMonth()) + ' at ' + alarmUtility.getStringTime(alarm.hours, alarm.minutes);
 
   			if(alarm.repeat) {
   				alarmsList += ' <img class="img-repeat" title="This alarm will repeat itself till the end of the world" src="img/blackArrowsCircle.png"/>';
@@ -108,7 +108,7 @@ function AlarmsHandler(AlarmObj) {
     if(!alarm) return;
 
     var now = new Date(),
-        nowAlarm = AlarmObj.create(now.getDay(), now.getHours(), now.getMinutes());
+        nowAlarm = alarmUtility.create(now.getDay(), now.getHours(), now.getMinutes());
 
     if(alarm.day == nowAlarm.day && alarm.hours == nowAlarm.hours && alarm.minutes == nowAlarm.minutes) {
       callback(alarm);
