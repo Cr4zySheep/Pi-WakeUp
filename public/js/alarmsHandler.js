@@ -1,32 +1,32 @@
-function AlarmsHandler(alarmUtility) {
+function AlarmsHandler(Alarm, dispElement) {
   var alarms = new Array(); //ALarms list
-  this.alarmUtility = alarmUtility; //Alarm utility
+  var Alarm = Alarm;
+  var dispElement = dispElement; //HTML element where alarms are displayed
 
-  this.addAlarm = function(alarm) {
-    alarm = alarmUtility.createFromObject(alarm);
-    if(!alarm) {
+  this.addAlarm = function(alarm, socket) {
+    if(!alarm.isAlarm) {
       console.log('Bad alarm info');
       return;
     }
 
     //Avoid two identicals alarms
   	if(alarms.find(function(current, index, array) {
-  		return (current['day']     == alarm.day   &&
-              current['hours']   == alarm.hours &&
-              current['minutes'] == alarm.minutes);
+  		return current.isSameAs(alarm);
   	}) == undefined) {
   		alarms.push(alarm);
-  		console.log('Add an alarm at ' + alarmUtility.getStringDay(alarm.day) + ' on ' + alarmUtility.getStringTime(alarm.hours, alarm.minutes));
+  		console.log('Add alarm: ' + alarm.display());
+      if(socket) alarm.sendRawData(socket, 'add');
   	} else {
   		console.log('Sorry, but this alarm already exists !');
   	}
   };
 
-  this.removeAlarm = function(index) {
-    if(this.checkIndex(index)) {
-      alarms.splice(parseInt(index), 1);
-      console.log('Alarm deleted with success !');
-    }
+  this.removeAlarm = function(index, socket) {
+    if(!this.checkIndex(index)) return;
+    if(socket) alarms[index].sendRawData(socket, 'delete');
+    console.log('Delete alarm: ' + alarms[index].display());
+    alarms.splice(parseInt(index), 1);
+    this.displayHTML();
   };
 
   this.orderAlarms = function() {
@@ -35,7 +35,7 @@ function AlarmsHandler(alarmUtility) {
 
     //Calc in how many minutes each alarms will ring
   	for(var i = 0; i < alarms.length; i++) {
-      minutesArray.push({'gap': alarmUtility.calcMinutesGap(now, alarms[i]), 'originalIndex': i});
+      minutesArray.push({'gap': alarms[i].calcMinutesGap(now), 'originalIndex': i});
     }
 
     minutesArray.sort(function(a, b) {
@@ -56,15 +56,17 @@ function AlarmsHandler(alarmUtility) {
 
   this.getIndexFromAlarm = function(alarm) {
     return alarms.findIndex(function(current, index, array) {
-      return (current['day']     == alarm.day   &&
-              current['hours']   == alarm.hours &&
-              current['minutes'] == alarm.minutes);
+      return current.isSameAs(alarm);
     });
   };
 
-  this.setMute = function(index, value) {
+  this.setMute = function(index, value, socket) {
     if(!this.checkIndex(index)) return;
-    alarms[index].mute = value;
+    var alarm = alarms[index];
+    alarm.changeMute(value ? true : false);
+    if(socket) alarm.sendRawData(socket, 'setMute');
+
+    this.displayHTML();
   };
 
   this.getAlarm = function(index) {
@@ -75,44 +77,91 @@ function AlarmsHandler(alarmUtility) {
     return alarms.length;
   };
 
-  this.getDisplayingText = function() {
-    return '<ol id="alarms-planning">' + function(){
+  this.displayHTML = function() {
+    dispElement.html('<ol id="alarms-planning">' + function(){
   		var alarmsList = '', now = new Date();
-
-  		for(var i = 0; i < alarms.length; ++i) {
-        var alarm = alarms[i],
-            nextOccuringDate = alarmUtility.getNextOccuringDate(now, alarm);
-
-  			alarmsList += '<li>' + alarmUtility.getStringDay(nextOccuringDate.getDay()) + ', ' + nextOccuringDate.getDate() + ' ' + alarmUtility.getStringMonth(nextOccuringDate.getMonth()) + ' at ' + alarmUtility.getStringTime(alarm.hours, alarm.minutes);
-
-  			if(alarm.repeat) {
-  				alarmsList += ' <img class="img-repeat" title="This alarm will repeat itself till the end of the world" src="img/blackArrowsCircle.png"/>';
-  			}
-
-  			if(alarm.mute) {
-  				alarmsList += ' <img class="img-mute" alt="unmute" title="Unmute this alarm" src="img/blackBellSlash.png" onclick="setAlarmMute(' + i + ', false)"/>';
-  			} else {
-  				alarmsList += ' <img class="img-unmute" alt="mute" title="Mute this alarm" src="img/blackBell.png" onclick="setAlarmMute(' + i + ', true)"/>';
-  			}
-
-
-  			alarmsList += ' <img class="img-delete" alt="delete" title="Delete this alarm" src="img/redCross.png" onclick="deleteAlarm(' + i + ')"/></li>';
-  		}
-
+  		for(var i = 0; i < alarms.length; ++i) alarmsList += alarms[i].getHTML(now, i);
   		return alarmsList;
-  	}() + '</ol>';
+  	}() + '</ol>');
   };
 
-  this.timeToRing = function(callback) {
-    var alarm = alarms[0];
-    if(!alarm) return;
-
+  this.checkAlarms = function(socket, ring) {
     var now = new Date(),
-        nowAlarm = alarmUtility.create(now.getDay(), now.getHours(), now.getMinutes());
+        alarm = alarms[0],
+        nowAlarm = new Alarm().create({'day': now.getDay(), 'hours': now.getHours(), 'minutes': now.getMinutes()});
 
-    if(alarm.day == nowAlarm.day && alarm.hours == nowAlarm.hours && alarm.minutes == nowAlarm.minutes) {
-      callback(alarm);
+    if(alarm.isAlarm && alarm.isSameAs(nowAlarm, socket)) {
+      if(!alarm['mute']) {
+  			Alarm().sendEmpty(socket, 'start');
+        ring();
+      }
+
+      if(!alarm['repeat']) {
+        this.removeAlarm(0, socket)
+      }
+
+      this.orderAlarms();
     }
   };
 
+  this.on = function(socket, ringStart, ringStop) {
+    var alarmsHandler = this;
+    socket.on('allAlarms', function(allAlarms) {
+      allAlarms.forEach(function(current, index, array) {
+  			var alarm = new Alarm().create(current);
+  			if(alarm.isAlarm) alarmsHandler.addAlarm(alarm);
+      });
+      alarmsHandler.orderAlarms();
+      alarmsHandler.displayHTML();
+    });
+
+    socket.on('alarm/addError', function(alarmData) {
+      alarmsHandler.removeAlarm(alarmsHandler.getIndexFromAlarm(new Alarm().create(alarmData)));
+      console.log('Error : alarm already exist');
+    });
+
+    socket.on('alarm/added', function(alarmData) {
+      alarmsHandler.addAlarm(new Alarm().create(alarmData));
+      alarmsHandler.orderAlarms();
+      alarmsHandler.displayHTML();
+  	});
+
+    socket.on('alarm/muteSet', function(data) {
+  		var alarm = new Alarm().create(data);
+  		if(!alarm.isAlarm) return;
+  		alarmsHandler.getAlarm(alarmsHandler.getIndexFromAlarm(alarm)).changeMute(alarm.getRawData().mute);
+      alarmsHandler.displayHTML();
+    });
+
+    socket.on('alarm/deleted', function(alarmData) {
+      alarmsHandler.removeAlarm(alarmsHandler.getIndexFromAlarm(new Alarm().create(alarmData)));
+      alarmsHandler.displayHTML();
+    });
+
+    socket.on('alarm/stopped', function(data) {
+  		ringStop();
+  	});
+
+  	socket.on('alarm/started', function(data) {
+  		ringStart();
+  	});
+  };
+
+  this.listenForm = function(form, socket) {
+    var alarmsHandler = this;
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      var day = event.target['0'].value,
+          hours = event.target['1'].value,
+          minutes = event.target['2'].value,
+          repeat = event.target['3'].checked;
+
+      var alarm = new Alarm().create({'day': day, 'hours': hours, 'minutes': minutes, 'repeat': repeat});
+
+      alarmsHandler.addAlarm(alarm, socket);
+      alarmsHandler.orderAlarms();
+      alarmsHandler.displayHTML(dispElement);
+    });
+  };
 };
