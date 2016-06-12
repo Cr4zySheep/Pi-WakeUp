@@ -20,7 +20,7 @@ Need node.js and mongoDB and then :
 ```
 git clone https://github.com/Cr4zySheep/Pi-WakeUp.git
 cd Pi-WakeUp
-node install
+npm install
 node app.js
 ```
 
