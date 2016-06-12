@@ -1,6 +1,6 @@
 var clock; //The Flip Clock AKA the displayed clock
 var checkInterval; //Store the checking interval
-var audio; //Store html audio element (could be a class later)
+var player;
 var socket;
 var Alarm = this.alarm.Alarm;
 var alarmsHandler = new AlarmsHandler(Alarm, $('#alarms-planning'));
@@ -33,33 +33,26 @@ window.onload = function() {
 	$('#minutes')[0][now.getMinutes()].selected = 'selected';
 	alarmsHandler.listenForm($('#alarm-form')[0], socket);
 
-	initAudio();
-}
-
-function initAudio() {
-  audio = $('audio')[0];
-  $('audio').hide();
-  audio.addEventListener('pause', function() {
-    stopAlarm();
+	//Init player
+	player = {
+		div: $('#player'),
+		button: $('#player-button')[0]
+	};
+	player.div.hide();
+	player.button.addEventListener('click', function() {
+		stopAlarm();
 		Alarm().sendEmpty(socket, 'stop');
-  });
+	});
 }
 
 function stopAlarm() {
-	$('audio').hide();
-	audio.load();
-	alarmsHandler.orderAlarms();
+	player.div.hide();
 	alarmsHandler.displayHTML();
 }
 
 function ringAlarm() {
-	if(audio == null) {
-		return;
-	}
-
 	$('#alarms-planning').html('');
-	$('audio').show();
-	audio.play();
+	player.div.show();
 }
 
 //Check if the display time still corresponds to the real time

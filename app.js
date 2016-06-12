@@ -1,7 +1,6 @@
 var config = require('./config.json');
 var express = require('express');
 var mongojs = require('mongojs');
-var Alarm = require('./public/js/alarm').Alarm;
 var alarmsServer = require('./alarmsServer');
 
 var db = mongojs(config.db.name, ['alarms']);
@@ -30,7 +29,7 @@ app.use(express.static('public'))
 var io = require('socket.io')(server);
 io.on('connection', function(socket) {
   console.log('A new client is connected !');
-  alarmsServer.on(socket, db.alarms, Alarm);
+  alarmsServer.on(socket, db.alarms);
 });
 
 //Start server !

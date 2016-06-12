@@ -86,11 +86,13 @@ function AlarmsHandler(Alarm, dispElement) {
   };
 
   this.checkAlarms = function(socket, ring) {
+    if(alarms.length == 0) return;
+
     var now = new Date(),
         alarm = alarms[0],
         nowAlarm = new Alarm().create({'day': now.getDay(), 'hours': now.getHours(), 'minutes': now.getMinutes()});
 
-    if(alarm.isAlarm && alarm.isSameAs(nowAlarm, socket)) {
+    if(alarm.isSameAs(nowAlarm, socket)) {
       if(!alarm['mute']) {
   			Alarm().sendEmpty(socket, 'start');
         ring();

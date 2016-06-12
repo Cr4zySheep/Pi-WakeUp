@@ -1,3 +1,5 @@
+var player = new (require('./mp3player'))(__dirname+'/public/musics/TheDarkness-GhostVitaz5.mp3');
+
 //If alarm is in db, execute yes with doc as parameter, else execute no
 exports.isInDB = function(alarm, collection, yes, no) {
   collection.findOne({day: alarm.day, hours: alarm.hours, minutes: alarm.minutes}, function(err, doc) {
@@ -18,7 +20,11 @@ exports.remove = function(alarm, collection) {
 };
 
 //To call when connected by socket
-exports.on = function(socket, collection, Alarm) {
+exports.on = function(socket, collection) {
+  var Alarm = require('./public/js/alarm').Alarm;
+
+  player.on('stop', () => {Alarm().sendEmpty(socket.broadcast, 'stopped')});
+
   //Send all alarms
   collection.find({}, function(err, docs) {
     if(err) {
@@ -28,6 +34,8 @@ exports.on = function(socket, collection, Alarm) {
     //TODO create alarms array before sending
     socket.emit('allAlarms', docs);
   });
+
+  if(!player.paused) Alarm().sendEmpty(socket, 'started');
 
   socket.on('alarm/add', function(data) {
     //First, check if data are correct
@@ -95,9 +103,14 @@ exports.on = function(socket, collection, Alarm) {
 
   socket.on('alarm/stop', function(data) {
     Alarm().sendEmpty(socket.broadcast, 'stopped');
+
+    player.stop();
   });
 
   socket.on('alarm/start', function(data) {
     Alarm().sendEmpty(socket.broadcast, 'started');
+
+    player.shuffle();
+    player.play();
   });
 };
