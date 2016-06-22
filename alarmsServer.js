@@ -83,94 +83,98 @@ function AlarmsServer(collection) {
     });
   }
 
-  this.on = function(socket) {
-    lastSocket = socket;
+  this.listenSocket = function(io) {
+    //Set up a namespace
+    io.of('/alarm').on('connection', function(socket) {
+      console.log('New client connected on namespace : ' + '/alarm');
+      lastSocket = socket;
 
-    //Send all alarms
-    collection.find({}, function(err, docs) {
-      if(err) {
-        console.log(err);
-        return;
-      }
-      //TODO create alarms array before sending
-      socket.emit('allAlarms', docs);
-    });
+      //Send all alarms
+      collection.find({}, function(err, docs) {
+        if(err) {
+          console.log(err);
+          return;
+        }
+        //TODO create alarms array before sending
+        socket.emit('allAlarms', docs);
+      });
 
-    if(!player.paused) Alarm().sendEmpty(socket, 'started');
+      if(!player.paused) Alarm().sendEmpty(socket, 'started');
 
-    socket.on('alarm/add', function(data) {
-      //First, check if data are correct
-      if(!data) {
-        console.log('Error : no data send');
-        return;
-      }
+      socket.on('add', function(data) {
+        //First, check if data are correct
+        if(!data) {
+          console.log('Error : no data send');
+          return;
+        }
 
-      var alarm = new Alarm().create(data);
-      if(!alarm.isAlarm) {
-        console.log('Cannot add alarm : data incorrect');
-        return;
-      }
+        var alarm = new Alarm().create(data);
+        if(!alarm.isAlarm) {
+          console.log('Cannot add alarm : data incorrect');
+          return;
+        }
 
-      //If not already in db, add it !
-      isInDB(alarm,
-        function(doc) {
-          console.log('Cannot add alarm : already exist');
-          alarm.sendRawData(socket, 'addError')
-        },
-        function() {
-          collection.insert(alarm.getRawData());
-          console.log('Alarm: ' + alarm.display() + ' added');
-          alarm.sendRawData(socket.broadcast, 'added');
+        //If not already in db, add it !
+        isInDB(alarm,
+          function(doc) {
+            console.log('Cannot add alarm : already exist');
+            alarm.sendRawData(socket, 'addError')
+          },
+          function() {
+            collection.insert(alarm.getRawData());
+            console.log('Alarm: ' + alarm.display() + ' added');
+            alarm.sendRawData(socket.broadcast, 'added');
 
-          self.actualizeAlarm();
-        });
-    });
+            self.actualizeAlarm();
+          });
+      });
 
-    socket.on('alarm/delete', function(data) {
-      //Are data correct ?
-      if(!data) {
-        console.log('Error : no data send');
-        return;
-      }
+      socket.on('delete', function(data) {
+        //Are data correct ?
+        if(!data) {
+          console.log('Error : no data send');
+          return;
+        }
 
-      var alarm = Alarm().create(data);
-      if(!alarm.isAlarm) {
-        console.log('Cannot remove alarm : data incorrect');
-        return;
-      }
+        var alarm = Alarm().create(data);
+        if(!alarm.isAlarm) {
+          console.log('Cannot remove alarm : data incorrect');
+          return;
+        }
 
-      remove(alarm.getRawData());
-      alarm.sendRawData(socket.broadcast, 'deleted');
-      console.log('Alarm: ' + alarm.display() + ' deleted');
+        remove(alarm.getRawData());
+        alarm.sendRawData(socket.broadcast, 'deleted');
+        console.log('Alarm: ' + alarm.display() + ' deleted');
 
-      self.actualizeAlarm();
-    });
+        self.actualizeAlarm();
+      });
 
-    socket.on('alarm/setMute', function(data) {
-      //Are data correct ?
-      if(!data) {
-        console.log('Error : no data send');
-        return;
-      }
+      socket.on('setMute', function(data) {
+        //Are data correct ?
+        if(!data) {
+          console.log('Error : no data send');
+          return;
+        }
 
-      var alarm = new Alarm().create(data);
-      if(!alarm.isAlarm) {
-        console.log('Cannot change mute : data incorrect');
-        return;
-      }
+        var alarm = new Alarm().create(data);
+        if(!alarm.isAlarm) {
+          console.log('Cannot change mute : data incorrect');
+          return;
+        }
 
-      //TODO USE ALARM ID INSTEAD
-      var rawData = alarm.getRawData();
-      collection.update({day: rawData.day, hours: rawData.hours, minutes: rawData.minutes}, {$set: {'mute': rawData.mute}});
-      console.log('Alarm: ' + alarm.display() + ' set mute to ' + ((rawData.mute) ? true : false));
-      alarm.sendRawData(socket.broadcast, 'muteSet');
+        //TODO USE ALARM ID INSTEAD
+        var rawData = alarm.getRawData();
+        collection.update({day: rawData.day, hours: rawData.hours, minutes: rawData.minutes}, {$set: {'mute': rawData.mute}});
+        console.log('Alarm: ' + alarm.display() + ' set mute to ' + ((rawData.mute) ? true : false));
+        alarm.sendRawData(socket.broadcast, 'muteSet');
 
-      self.actualizeAlarm();
-    });
+        self.actualizeAlarm();
+      });
 
-    socket.on('alarm/stop', function(data) {
-      player.stop();
-      Alarm().sendEmpty(socket.broadcast, 'stopped');
+      socket.on('stop', function(data) {
+        player.stop();
+        Alarm().sendEmpty(socket.broadcast, 'stopped');
+      });
     });
   }
 }

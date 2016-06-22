@@ -23,7 +23,7 @@ window.onload = function() {
 	}, (60 - new Date().getSeconds() + 1) * 1000);
 
 	//Init Socket.IO
-	socket = io.connect('http://' + serverAddress);
+	socket = io.connect('http://' + serverAddress + '/alarm');
 	alarmsHandler.on(socket, ringAlarm, stopAlarm);
 
 	//Init alarm form and set it to now

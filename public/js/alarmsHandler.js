@@ -112,34 +112,34 @@ function AlarmsHandler(Alarm, dispElement) {
       alarmsHandler.displayHTML();
     });
 
-    socket.on('alarm/addError', function(alarmData) {
+    socket.on('addError', function(alarmData) {
       alarmsHandler.removeAlarm(alarmsHandler.getIndexFromAlarm(new Alarm().create(alarmData)));
       console.log('Error : alarm already exist');
     });
 
-    socket.on('alarm/added', function(alarmData) {
+    socket.on('added', function(alarmData) {
       alarmsHandler.addAlarm(new Alarm().create(alarmData));
       alarmsHandler.orderAlarms();
       alarmsHandler.displayHTML();
   	});
 
-    socket.on('alarm/muteSet', function(data) {
+    socket.on('muteSet', function(data) {
   		var alarm = new Alarm().create(data);
   		if(!alarm.isAlarm) return;
   		alarmsHandler.getAlarm(alarmsHandler.getIndexFromAlarm(alarm)).changeMute(alarm.getRawData().mute);
       alarmsHandler.displayHTML();
     });
 
-    socket.on('alarm/deleted', function(alarmData) {
+    socket.on('deleted', function(alarmData) {
       alarmsHandler.removeAlarm(alarmsHandler.getIndexFromAlarm(new Alarm().create(alarmData)));
       alarmsHandler.displayHTML();
     });
 
-    socket.on('alarm/stopped', function(data) {
+    socket.on('stopped', function(data) {
   		ringStop();
   	});
 
-  	socket.on('alarm/started', function(data) {
+  	socket.on('started', function(data) {
   		ringStart();
   	});
   };

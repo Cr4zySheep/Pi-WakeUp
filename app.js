@@ -26,10 +26,7 @@ app.use(express.static('public'))
 //Socket.io
 //Listen client and communicate with him/her !
 var io = require('socket.io')(server);
-io.on('connection', function(socket) {
-  console.log('A new client is connected !');
-  alarmsServer.on(socket, db.alarms);
-});
+alarmsServer.listenSocket(io);
 
 //Start server !
 server.listen(config.server.port, function() {

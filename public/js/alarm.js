@@ -38,13 +38,13 @@
 
     this.sendRawData = function(socket, msg) {
       if(!socket || !this.isAlarm) return;
-      socket.emit('alarm/' + msg,
+      socket.emit(msg,
                   this.getRawData());
     }
 
     this.sendEmpty = function(socket, msg) {
       if(!socket) return;
-      socket.emit('alarm/' + msg, {});
+      socket.emit(msg, {});
     }
 
     this.getNextOccuringDate = function(date) {
