@@ -1,6 +1,5 @@
 (function(exports) {
   exports.Alarm = function() {
-    var day, hours, minutes, repeat, mute; //Alarm attributs
     this.isAlarm = false; //True when alarm was created
 
     this.create = function(obj) {
@@ -150,6 +149,10 @@
 
     this.display = function() {
       return this.getStringDay() + ' ' + this.getStringTime();
+    }
+
+    this.toCron = function() {
+      return '0 ' + this.minutes + ' ' + this.hours + ' *  * ' + this.day;
     }
 
     return this;

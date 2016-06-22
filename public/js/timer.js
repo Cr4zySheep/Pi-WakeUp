@@ -47,6 +47,7 @@ window.onload = function() {
 
 function stopAlarm() {
 	player.div.hide();
+	alarmsHandler.orderAlarms();
 	alarmsHandler.displayHTML();
 }
 

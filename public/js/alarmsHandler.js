@@ -78,6 +78,8 @@ function AlarmsHandler(Alarm, dispElement) {
   };
 
   this.displayHTML = function() {
+    if(!dispElement) return;
+
     dispElement.html('<ol id="alarms-planning">' + function(){
   		var alarmsList = '', now = new Date();
   		for(var i = 0; i < alarms.length; ++i) alarmsList += alarms[i].getHTML(now, i);
@@ -92,22 +94,15 @@ function AlarmsHandler(Alarm, dispElement) {
         alarm = alarms[0],
         nowAlarm = new Alarm().create({'day': now.getDay(), 'hours': now.getHours(), 'minutes': now.getMinutes()});
 
-    if(alarm.isSameAs(nowAlarm, socket)) {
-      if(!alarm['mute']) {
-  			Alarm().sendEmpty(socket, 'start');
-        ring();
-      }
-
-      if(!alarm['repeat']) {
-        this.removeAlarm(0, socket)
-      }
-
+    if(alarm.isSameAs(nowAlarm, socket) && alarm.mute) {
       this.orderAlarms();
+      this.displayHTML();
     }
   };
 
   this.on = function(socket, ringStart, ringStop) {
     var alarmsHandler = this;
+
     socket.on('allAlarms', function(allAlarms) {
       allAlarms.forEach(function(current, index, array) {
   			var alarm = new Alarm().create(current);
@@ -163,7 +158,9 @@ function AlarmsHandler(Alarm, dispElement) {
 
       alarmsHandler.addAlarm(alarm, socket);
       alarmsHandler.orderAlarms();
-      alarmsHandler.displayHTML(dispElement);
+      alarmsHandler.displayHTML();
     });
   };
 };
+
+if(typeof exports !== 'undefined') module.exports = AlarmsHandler;
