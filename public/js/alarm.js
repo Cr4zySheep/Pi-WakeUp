@@ -36,15 +36,18 @@
       return this.isAlarm ? {'day': this.day, 'hours': this.hours, 'minutes': this.minutes, 'repeat': this.repeat, 'mute': this.mute} : null;
     }
 
-    this.sendRawData = function(socket, msg) {
+    this.sendRawData = function(socket, msg, broadcast) {
       if(!socket || !this.isAlarm) return;
-      socket.emit(msg,
-                  this.getRawData());
+
+      socket.emit(msg, this.getRawData());
+      if(broadcast && socket.broadcast) socket.broadcast.emit(msg, this.getRawData());
     }
 
-    this.sendEmpty = function(socket, msg) {
+    this.sendEmpty = function(socket, msg, broadcast) {
       if(!socket) return;
+
       socket.emit(msg, {});
+      if(broadcast && socket.broadcast) socket.broadcast.emit(msg, {});
     }
 
     this.getNextOccuringDate = function(date) {

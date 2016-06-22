@@ -8,8 +8,7 @@ function AlarmsServer(collection) {
 
   player.on('stop', () => {
     if(!lastSocket) return;
-    Alarm().sendEmpty(lastSocket, 'stopped');
-    Alarm().sendEmpty(lastSocket.broadcast, 'stopped');
+    Alarm().sendEmpty(lastSocket, 'stopped', true);
   });
 
   function scheduleNextAlarm(alarm) {
@@ -25,16 +24,14 @@ function AlarmsServer(collection) {
         player.play();
 
         if(lastSocket) {
-          Alarm().sendEmpty(lastSocket, 'started');
-          Alarm().sendEmpty(lastSocket.broadcast, 'started');
+          Alarm().sendEmpty(lastSocket, 'started', true);
         }
       }
 
       if(!alarm.repeat) {
         remove(alarm.getRawData());
         console.log('Alarm: ' + alarm.display() + ' deleted');
-        alarm.sendRawData(lastSocket, 'deleted');
-        alarm.sendRawData(lastSocket.broadcast, 'deleted');
+        alarm.sendRawData(lastSocket, 'deleted', true);
       }
 
       self.actualizeAlarm();
