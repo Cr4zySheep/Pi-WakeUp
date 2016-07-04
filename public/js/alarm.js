@@ -15,12 +15,15 @@
       this.mute    = obj.mute   ? true : false;
       this.repeat  = obj.repeat ? true : false;
 
+      if(obj._id) this._id = obj._id;
+
       this.isAlarm = true;
       return this;
     };
 
-    this.changeMute = function(value) {
+    this.changeMute = function(value, socket) {
       this.mute = value ? true : false;
+      if(socket) socket.emit('setMute', {'_id': this._id, 'value': this.mute});
     }
 
     this.isSameAs = function(otherAlarm) {
@@ -33,21 +36,7 @@
     }
 
     this.getRawData = function() {
-      return this.isAlarm ? {'day': this.day, 'hours': this.hours, 'minutes': this.minutes, 'repeat': this.repeat, 'mute': this.mute} : null;
-    }
-
-    this.sendRawData = function(socket, msg, broadcast) {
-      if(!socket || !this.isAlarm) return;
-
-      socket.emit(msg, this.getRawData());
-      if(broadcast && socket.broadcast) socket.broadcast.emit(msg, this.getRawData());
-    }
-
-    this.sendEmpty = function(socket, msg, broadcast) {
-      if(!socket) return;
-
-      socket.emit(msg, {});
-      if(broadcast && socket.broadcast) socket.broadcast.emit(msg, {});
+      return this.isAlarm ? {'_id': this._id, 'day': this.day, 'hours': this.hours, 'minutes': this.minutes, 'repeat': this.repeat, 'mute': this.mute} : null;
     }
 
     this.getNextOccuringDate = function(date) {
@@ -140,12 +129,12 @@
       }
 
       if(this.mute) {
-        html += ' <img class="img-mute" alt="unmute" title="Unmute this alarm" src="img/blackBellSlash.png" onclick="alarmsHandler.setMute(' + i + ', false, socket)"/>';
+        html += ' <img class="img-mute" alt="unmute" title="Unmute this alarm" src="img/blackBellSlash.png" onclick="alarmsHandler.setMute(\'' + this._id + '\', false, socket)"/>';
       } else {
-        html += ' <img class="img-unmute" alt="mute" title="Mute this alarm" src="img/blackBell.png" onclick="alarmsHandler.setMute(' + i + ', true, socket)"/>';
+        html += ' <img class="img-unmute" alt="mute" title="Mute this alarm" src="img/blackBell.png" onclick="alarmsHandler.setMute(\'' + this._id + '\', true, socket)"/>';
       }
 
-      html += ' <img class="img-delete" alt="delete" title="Delete this alarm" src="img/redCross.png" onclick="alarmsHandler.removeAlarm(' + i + ', socket)"/></li>';
+      html += ' <img class="img-delete" alt="delete" title="Delete this alarm" src="img/redCross.png" onclick="alarmsHandler.removeAlarm(\'' + this._id + '\', socket)"/></li>';
 
       return html;
     }

@@ -7,9 +7,15 @@ function AlarmsServer(collection) {
   var self = this;
 
   player.on('stop', () => {
-    if(!lastSocket) return;
-    Alarm().sendEmpty(lastSocket, 'stopped', true);
+    broadcast('stopped');
   });
+
+  function broadcast(msg, data) {
+    if(!lastSocket) return;
+
+    lastSocket.emit(msg, data);
+    lastSocket.broadcast.emit(msg, data);
+  }
 
   function scheduleNextAlarm(alarm) {
     if(nextOccuringAlarm) nextOccuringAlarm.cancel();
@@ -24,14 +30,14 @@ function AlarmsServer(collection) {
         player.play();
 
         if(lastSocket) {
-          Alarm().sendEmpty(lastSocket, 'started', true);
+          broadcast('started');
         }
       }
 
       if(!alarm.repeat) {
-        remove(alarm.getRawData());
+        removeById(alarm._id);
         console.log('Alarm: ' + alarm.display() + ' deleted');
-        alarm.sendRawData(lastSocket, 'deleted', true);
+        broadcast('deleted', alarm._id);
       }
 
       self.actualizeAlarm();
@@ -52,9 +58,9 @@ function AlarmsServer(collection) {
     });
   };
 
-  //Remove alarm from collection
-  function remove(alarm) {
-    collection.remove({day: alarm.day, hours: alarm.hours, minutes: alarm.minutes});
+  //Remove alarm using his id from collection
+  function removeById(id) {
+    collection.remove({"_id": require('mongojs').ObjectId(id)});
   };
 
   //Public
@@ -96,7 +102,7 @@ function AlarmsServer(collection) {
         socket.emit('allAlarms', docs);
       });
 
-      if(!player.paused) Alarm().sendEmpty(socket, 'started');
+      if(!player.paused) socket.emit('started');
 
       socket.on('add', function(data) {
         //First, check if data are correct
@@ -115,62 +121,52 @@ function AlarmsServer(collection) {
         isInDB(alarm,
           function(doc) {
             console.log('Cannot add alarm : already exist');
-            alarm.sendRawData(socket, 'addError')
+            socket.emit('addError');
           },
           function() {
-            collection.insert(alarm.getRawData());
-            console.log('Alarm: ' + alarm.display() + ' added');
-            alarm.sendRawData(socket.broadcast, 'added');
+            collection.insert(alarm.getRawData(), (err, doc) => {
+              if(err) return;
 
-            self.actualizeAlarm();
+              var alarm = new Alarm().create(doc);
+              console.log('Alarm: ' + alarm.display() + ' added');
+              broadcast('added', alarm.getRawData());
+              self.actualizeAlarm();
+            });
           });
       });
 
-      socket.on('delete', function(data) {
+      socket.on('delete', function(alarmId) {
         //Are data correct ?
-        if(!data) {
+        if(!alarmId) {
           console.log('Error : no data send');
           return;
         }
 
-        var alarm = Alarm().create(data);
-        if(!alarm.isAlarm) {
-          console.log('Cannot remove alarm : data incorrect');
-          return;
-        }
-
-        remove(alarm.getRawData());
-        alarm.sendRawData(socket.broadcast, 'deleted');
-        console.log('Alarm: ' + alarm.display() + ' deleted');
+        removeById(alarmId);
+        socket.broadcast.emit('deleted', alarmId);
+        console.log('Alarm: ' + alarmId + ' deleted');
 
         self.actualizeAlarm();
       });
 
       socket.on('setMute', function(data) {
         //Are data correct ?
-        if(!data) {
+        if(!data || !data._id) {
           console.log('Error : no data send');
           return;
         }
 
-        var alarm = new Alarm().create(data);
-        if(!alarm.isAlarm) {
-          console.log('Cannot change mute : data incorrect');
-          return;
-        }
+        collection.update({'_id': require('mongojs').ObjectId(data._id)}, {$set: {mute: data.value}}, (err, doc) => {
+          if(err) return;
 
-        //TODO USE ALARM ID INSTEAD
-        var rawData = alarm.getRawData();
-        collection.update({day: rawData.day, hours: rawData.hours, minutes: rawData.minutes}, {$set: {'mute': rawData.mute}});
-        console.log('Alarm: ' + alarm.display() + ' set mute to ' + ((rawData.mute) ? true : false));
-        alarm.sendRawData(socket.broadcast, 'muteSet');
-
-        self.actualizeAlarm();
+          console.log('Alarm : ' + data._id + ' set mute to ' + data.value);
+          socket.broadcast.emit('muteSet', data);
+          self.actualizeAlarm();
+        });
       });
 
       socket.on('stop', function(data) {
         player.stop();
-        Alarm().sendEmpty(socket.broadcast, 'stopped');
       });
     });
   }

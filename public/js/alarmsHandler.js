@@ -3,7 +3,7 @@ function AlarmsHandler(Alarm, dispElement) {
   var Alarm = Alarm;
   var dispElement = dispElement; //HTML element where alarms are displayed
 
-  this.addAlarm = function(alarm, socket) {
+  this.addAlarm = function(alarm) {
     if(!alarm.isAlarm) {
       console.log('Bad alarm info');
       return;
@@ -15,17 +15,17 @@ function AlarmsHandler(Alarm, dispElement) {
   	}) == undefined) {
   		alarms.push(alarm);
   		console.log('Add alarm: ' + alarm.display());
-      if(socket) alarm.sendRawData(socket, 'add');
   	} else {
   		console.log('Sorry, but this alarm already exists !');
   	}
   };
 
-  this.removeAlarm = function(index, socket) {
-    if(!this.checkIndex(index)) return;
-    if(socket) alarms[index].sendRawData(socket, 'delete');
-    console.log('Delete alarm: ' + alarms[index].display());
-    alarms.splice(parseInt(index), 1);
+  this.removeAlarm = function(id, socket) {
+    var alarm = this.getAlarmById(id);
+    if(!alarm) return;
+    if(socket) socket.emit('delete', id);
+    console.log('Delete alarm: ' + alarm.display());
+    alarms.splice(parseInt(this.getIndexFromAlarm(alarm)), 1);
     this.displayHTML();
   };
 
@@ -60,12 +60,18 @@ function AlarmsHandler(Alarm, dispElement) {
     });
   };
 
-  this.setMute = function(index, value, socket) {
-    if(!this.checkIndex(index)) return;
-    var alarm = alarms[index];
-    alarm.changeMute(value ? true : false);
-    if(socket) alarm.sendRawData(socket, 'setMute');
+  this.getAlarmById = function(id) {
+    var i = alarms.findIndex(function(current, index, array) {
+      return current._id == id;
+    });
 
+    return alarms[i];
+  };
+
+  this.setMute = function(alarmId, value, socket) {
+    var alarm = this.getAlarmById(alarmId);
+    if(!alarm) return;
+    alarm.changeMute(value ? true : false, socket);
     this.displayHTML();
   };
 
@@ -112,8 +118,7 @@ function AlarmsHandler(Alarm, dispElement) {
       alarmsHandler.displayHTML();
     });
 
-    socket.on('addError', function(alarmData) {
-      alarmsHandler.removeAlarm(alarmsHandler.getIndexFromAlarm(new Alarm().create(alarmData)));
+    socket.on('addError', function() {
       console.log('Error : alarm already exist');
     });
 
@@ -124,14 +129,14 @@ function AlarmsHandler(Alarm, dispElement) {
   	});
 
     socket.on('muteSet', function(data) {
-  		var alarm = new Alarm().create(data);
-  		if(!alarm.isAlarm) return;
-  		alarmsHandler.getAlarm(alarmsHandler.getIndexFromAlarm(alarm)).changeMute(alarm.getRawData().mute);
+      if(!data || !data._id) return;
+
+      alarmsHandler.getAlarmById(data._id).changeMute(data.value)
       alarmsHandler.displayHTML();
     });
 
-    socket.on('deleted', function(alarmData) {
-      alarmsHandler.removeAlarm(alarmsHandler.getIndexFromAlarm(new Alarm().create(alarmData)));
+    socket.on('deleted', function(alarmId) {
+      alarmsHandler.removeAlarm(alarmId);
       alarmsHandler.displayHTML();
     });
 
@@ -155,10 +160,7 @@ function AlarmsHandler(Alarm, dispElement) {
           repeat = event.target['3'].checked;
 
       var alarm = new Alarm().create({'day': day, 'hours': hours, 'minutes': minutes, 'repeat': repeat});
-
-      alarmsHandler.addAlarm(alarm, socket);
-      alarmsHandler.orderAlarms();
-      alarmsHandler.displayHTML();
+      if(alarm.isAlarm) socket.emit('add', alarm.getRawData());
     });
   };
 };
